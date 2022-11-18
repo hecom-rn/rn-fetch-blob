@@ -17,6 +17,7 @@ import android.util.Base64;
 
 import com.RNFetchBlob.Response.RNFetchBlobDefaultResp;
 import com.RNFetchBlob.Response.RNFetchBlobFileResp;
+import com.RNFetchBlob.Response.TmpResp;
 import com.facebook.common.logging.FLog;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
@@ -427,19 +428,44 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
                         if (originalResponse != null) {
                             originalResponse.close();
                         }
+
+                        TmpResp extended = new TmpResp(
+                                RNFetchBlob.RCTContext,
+                                taskId,
+                                originalResponse.body(),
+                                destPath,
+                                options.overwrite,
+                                "SocketException e" + e.getMessage());
+                        return originalResponse.newBuilder().body(extended).build();
                     } catch (SocketTimeoutException e) {
                         timeout = true;
                         if (originalResponse != null) {
                             originalResponse.close();
                         }
-                        //ReactNativeBlobUtilUtils.emitWarningEvent("ReactNativeBlobUtil error when sending request : " + e.getLocalizedMessage());
+
+                        TmpResp extended = new TmpResp(
+                                RNFetchBlob.RCTContext,
+                                taskId,
+                                originalResponse.body(),
+                                destPath,
+                                options.overwrite,
+                                "SocketTimeoutException e" + e.getMessage());
+                        return originalResponse.newBuilder().body(extended).build();                        //ReactNativeBlobUtilUtils.emitWarningEvent("ReactNativeBlobUtil error when sending request : " + e.getLocalizedMessage());
                     } catch (Exception ex) {
                         if (originalResponse != null) {
                             originalResponse.close();
                         }
+                        TmpResp extended = new TmpResp(
+                                RNFetchBlob.RCTContext,
+                                taskId,
+                                originalResponse.body(),
+                                destPath,
+                                options.overwrite,
+                                "Exception e" + ex.getMessage());
+                        return originalResponse.newBuilder().body(extended).build();
                     }
 
-                    return chain.proceed(chain.request());
+//                    return chain.proceed(chain.request());
                 }
             });
 
@@ -613,6 +639,8 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
                             boolean isContentExists = responseBody.contentLength() > 0;
                             if (isBufferDataExists && isContentExists) {
                                 responseBodyString = responseBody.string();
+                            } else if (responseBody instanceof TmpResp) {
+                                responseBodyString = ((TmpResp) responseBody).exceptionMessage;
                             }
                         } catch(IOException exception) {
                             exception.printStackTrace();
