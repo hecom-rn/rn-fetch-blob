@@ -422,50 +422,47 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
                                 break;
                         }
                         return originalResponse.newBuilder().body(extended).build();
-                    }
-                    catch(SocketException e) {
+                     } catch (SocketException e) {
                         timeout = true;
                         if (originalResponse != null) {
                             originalResponse.close();
+                            TmpResp extended = new TmpResp(
+                                    RNFetchBlob.RCTContext,
+                                    taskId,
+                                    originalResponse.body(),
+                                    destPath,
+                                    options.overwrite,
+                                    "SocketException e" + e.getMessage());
+                            return originalResponse.newBuilder().body(extended).build();
                         }
-
-                        TmpResp extended = new TmpResp(
-                                RNFetchBlob.RCTContext,
-                                taskId,
-                                originalResponse.body(),
-                                destPath,
-                                options.overwrite,
-                                "SocketException e" + e.getMessage());
-                        return originalResponse.newBuilder().body(extended).build();
                     } catch (SocketTimeoutException e) {
                         timeout = true;
                         if (originalResponse != null) {
                             originalResponse.close();
+                            TmpResp extended = new TmpResp(
+                                    RNFetchBlob.RCTContext,
+                                    taskId,
+                                    originalResponse.body(),
+                                    destPath,
+                                    options.overwrite,
+                                    "SocketTimeoutException e" + e.getMessage());
+                            return originalResponse.newBuilder().body(extended).build();                        //ReactNativeBlobUtilUtils.emitWarningEvent("ReactNativeBlobUtil error when sending request : " + e.getLocalizedMessage());
                         }
-
-                        TmpResp extended = new TmpResp(
-                                RNFetchBlob.RCTContext,
-                                taskId,
-                                originalResponse.body(),
-                                destPath,
-                                options.overwrite,
-                                "SocketTimeoutException e" + e.getMessage());
-                        return originalResponse.newBuilder().body(extended).build();                        //ReactNativeBlobUtilUtils.emitWarningEvent("ReactNativeBlobUtil error when sending request : " + e.getLocalizedMessage());
                     } catch (Exception ex) {
                         if (originalResponse != null) {
                             originalResponse.close();
-                        }
-                        TmpResp extended = new TmpResp(
-                                RNFetchBlob.RCTContext,
-                                taskId,
-                                originalResponse.body(),
-                                destPath,
-                                options.overwrite,
-                                "Exception e" + ex.getMessage());
-                        return originalResponse.newBuilder().body(extended).build();
-                    }
 
-//                    return chain.proceed(chain.request());
+                            TmpResp extended = new TmpResp(
+                                    RNFetchBlob.RCTContext,
+                                    taskId,
+                                    originalResponse.body(),
+                                    destPath,
+                                    options.overwrite,
+                                    "Exception e" + ex.getMessage());
+                            return originalResponse.newBuilder().body(extended).build();
+                        }
+                    }
+                    return chain.proceed(chain.request());
                 }
             });
 
